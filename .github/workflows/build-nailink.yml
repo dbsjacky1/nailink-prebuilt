@@ -109,6 +109,7 @@ jobs:
           test -f /tmp/nailink-runtime/luci-proxy
 
       - name: Package artifacts
+        id: package
         run: |
           set -e
           OUT="nailink-${{ inputs.version }}-${{ inputs.cpu }}"
@@ -120,6 +121,8 @@ jobs:
           tar -czvf "${OUT}.tar.gz" "$OUT"
           sha256sum "${OUT}.tar.gz" | tee "${OUT}.tar.gz.sha256"
           ls -la "${OUT}.tar.gz" "${OUT}.tar.gz.sha256"
+          echo "tarball=${PWD}/${OUT}.tar.gz" >> "$GITHUB_OUTPUT"
+          echo "checksum=${PWD}/${OUT}.tar.gz.sha256" >> "$GITHUB_OUTPUT"
           echo "ARTIFACT_NAME=${OUT}" >> "$GITHUB_ENV"
 
       - name: Upload workflow artifact
@@ -140,12 +143,10 @@ jobs:
           name: NaiLink ${{ inputs.version }} (${{ inputs.cpu }})
           body: |
             Prebuilt binaries for ImmortalWrt / OpenWrt package integration.
-
-            | Item | Value |
-            |------|-------|
-            | Source | `slobys/NaiLink@${{ inputs.nailink_ref }}` |
-            | Version | `${{ inputs.version }}` |
-            | CPU | `${{ inputs.cpu }}` |
-            | Files | `daed`, `btf-probe`, `luci-proxy` |
-
-            ### Download
+            Files: daed, btf-probe, luci-proxy (${{ inputs.cpu }})
+          files: |
+            ${{ steps.package.outputs.tarball }}
+            ${{ steps.package.outputs.checksum }}
+          fail_on_unmatched_files: true
+          make_latest: true
+          
