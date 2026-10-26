@@ -86,7 +86,7 @@ jobs:
             --output /tmp/nailink-runtime
           ls -lh /tmp/nailink-runtime/
 
-- name: Package artifacts
+      - name: Package artifacts
         run: |
           OUT="nailink-${{ inputs.version }}-${{ inputs.cpu }}"
           mkdir -p "$OUT"
