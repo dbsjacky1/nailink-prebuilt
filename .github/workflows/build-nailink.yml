@@ -65,8 +65,8 @@ jobs:
         working-directory: NaiLink
         run: |
           pnpm install --no-frozen-lockfile
-          pnpm exec turbo run build --filter=./packages/* --filter=./apps/web...
-          pnpm --dir packages/dae-lsp run build
+		  pnpm exec turbo run build --filter=./packages/* --filter=./apps/web...
+		  pnpm --dir packages/dae-lsp run build
           pnpm --dir apps/web build:openwrt
 
       - name: Prepare wing
@@ -86,7 +86,7 @@ jobs:
             --output /tmp/nailink-runtime
           ls -lh /tmp/nailink-runtime/
 
-      - name: Package artifacts
+- name: Package artifacts
         run: |
           OUT="nailink-${{ inputs.version }}-${{ inputs.cpu }}"
           mkdir -p "$OUT"
@@ -96,6 +96,7 @@ jobs:
           chmod +x "$OUT"/*
           tar -czvf "${OUT}.tar.gz" "$OUT"
           sha256sum "${OUT}.tar.gz" | tee "${OUT}.tar.gz.sha256"
+          ls -la *.tar.gz
           echo "ARTIFACT_NAME=${OUT}" >> "$GITHUB_ENV"
 
       - name: Upload workflow artifact
@@ -107,18 +108,19 @@ jobs:
             ${{ env.ARTIFACT_NAME }}.tar.gz.sha256
           retention-days: 90
 
-      - name: Create / update GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ inputs.version }}-${{ inputs.cpu }}
           name: NaiLink ${{ inputs.version }} (${{ inputs.cpu }})
           body: |
-            Prebuilt binaries for ImmortalWrt / OpenWrt package integration.
-
-            - Source: `slobys/NaiLink@${{ inputs.nailink_ref }}`
-            - CPU: `${{ inputs.cpu }}`
-            - Files: `daed`, `btf-probe`, `luci-proxy`
-
-            ### Local ImmortalWrt usage
-            ```bash
-            export NAILINK_PREBUILT_URL=https://github.com/${{ github.repository }}/releases/download/v${{ inputs.version }}-${{ inputs.cpu }}/nailink-${{ inputs.version }}-${{ inputs.cpu }}.tar.gz
+            Prebuilt binaries for ImmortalWrt integration.
+            - daed / btf-probe / luci-proxy
+            - cpu: ${{ inputs.cpu }}
+          files: |
+            ${{ env.ARTIFACT_NAME }}.tar.gz
+            ${{ env.ARTIFACT_NAME }}.tar.gz.sha256
+          fail_on_unmatched_files: true
+          make_latest: true
