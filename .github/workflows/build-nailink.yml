@@ -64,7 +64,7 @@ jobs:
       - name: Build OpenWrt frontend
         working-directory: NaiLink
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install --no-frozen-lockfile
           pnpm --dir apps/web build:openwrt
 
       - name: Prepare wing
