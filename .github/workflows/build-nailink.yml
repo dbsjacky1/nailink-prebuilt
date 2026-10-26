@@ -65,6 +65,8 @@ jobs:
         working-directory: NaiLink
         run: |
           pnpm install --no-frozen-lockfile
+          pnpm exec turbo run build --filter=./packages/* --filter=./apps/web...
+          pnpm --dir packages/dae-lsp run build
           pnpm --dir apps/web build:openwrt
 
       - name: Prepare wing
